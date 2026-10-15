@@ -12,11 +12,9 @@ const BouncingLoader = () => {
                     duration: 0.6,
                     ease:"easeInOut",
                     repeat: Infinity,
-                   
                     repeatDelay: index * 0.2
                 }}
                 >
-                    
                 </motion.div>
             ))}
         </div>

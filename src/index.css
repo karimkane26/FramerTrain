@@ -1,6 +1,7 @@
-.box {
-  width: 300px;
-  height: 300px;
-  border-radius: 100%;
-  background: yellow;
+@import "tailwindcss";
+
+.box{
+    width: 200px;
+    border-radius: 100px;
+    background-color: yellow;
 }
