@@ -1,9 +1,13 @@
 import {motion} from 'motion/react'
+import { useState } from 'react'
 import PulsingButton from './components/PulsingButton'
 import BouncingLoader from './components/BouncingLoader'
+import FlippingCard from './components/FlippingCard'
+import { variants } from './variants'
 import './index.css'
-function App() {
 
+function App() {
+const [isVisible,setIsVisible] = useState(true)
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-900">
        {/* <motion.div className="size-75 rounded-full bg-yellow-300"
@@ -26,12 +30,14 @@ function App() {
 
         <motion.div
         className='box'
-         variants={{
-          hidden: {opacity: 0,scale: 0},
-          visible: {opacity:1,scale: 1}
-        }}
+         variants={variants}
+        initial="hidden"
+        animate={isVisible ? "visible" : "hidden"}
+        exit="exit"
+        transition={{duration: 0.5}}
         >
         </motion.div>
+        <FlippingCard />
     </div>
   )
 }
