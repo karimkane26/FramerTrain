@@ -255,26 +255,126 @@ Ce principe s'appelle le **stagger** (échelonnement) : on décale dans le temps
 
 ---
 
-## 7. Intégration dans `App.tsx`
+## 7. Cas pratique : `FlippingCard` (variants + état React)
+
+Fichier : `src/components/FlippingCard.tsx`
+
+```tsx
+import { useState } from 'react'
+import { motion } from 'motion/react'
+
+const FlippingCard = () => {
+  const [isFlipped, setIsFlipped] = useState(false)
+
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped)
+  }
+
+  const cardVariants = {
+    front: { rotateY: 0 },
+    back: { rotateY: 180 },
+  }
+
+  return (
+    <div className="perspective-[1000px]">
+      <motion.div
+        onClick={handleFlip}
+        variants={cardVariants}
+        initial="front"
+        animate={isFlipped ? "back" : "front"}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+        className="relative w-64 h-40 transform-3d cursor-pointer"
+      >
+        <div className="absolute inset-0 backface-hidden rounded-lg shadow-lg bg-white flex items-center justify-center text-xl font-bold">
+          <p className="text-gray-800">Front</p>
+        </div>
+
+        <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-lg shadow-lg bg-blue-500 flex items-center justify-center text-xl font-bold">
+          <p className="text-white">Back Side</p>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+export default FlippingCard
+```
+
+### Les `variants` : des états nommés
+
+Jusqu'ici, on passait directement des valeurs à `animate`. Avec `variants`, on **donne un nom** à chaque état :
+
+```tsx
+const cardVariants = {
+  front: { rotateY: 0 },   // carte vue de face
+  back:  { rotateY: 180 }, // carte retournée
+}
+```
+
+On passe ensuite le **nom** de l'état à `initial` et `animate`, au lieu des valeurs :
+
+```tsx
+variants={cardVariants}
+initial="front"
+animate={isFlipped ? "back" : "front"}
+```
+
+Avantages :
+- le JSX est plus lisible (`"back"` plutôt que `{ rotateY: 180 }`) ;
+- les états peuvent être définis dans un fichier à part et réutilisés (voir `src/variants.tsx`) ;
+- les enfants d'un `motion` héritent des noms de variants de leur parent.
+
+### Piloter l'animation avec un état React
+
+1. **`useState(false)`** : la carte commence de face.
+2. **`onClick={handleFlip}`** : chaque clic inverse `isFlipped`.
+3. **`animate={isFlipped ? "back" : "front"}`** : quand l'état change, React refait le rendu, `animate` reçoit une nouvelle cible, et Motion anime automatiquement de l'état actuel vers la nouvelle cible.
+
+Pas de `repeat` ici : l'animation se joue **une fois à chaque clic**, dans un sens ou dans l'autre.
+
+### La 3D : les quatre classes indispensables
+
+Pour qu'un retournement ait l'air d'être en 3D, il faut quatre réglages CSS (classes Tailwind v4) :
+
+| Classe                 | Où                    | Rôle                                                                 |
+| ---------------------- | --------------------- | -------------------------------------------------------------------- |
+| `perspective-[1000px]` | Conteneur parent      | Donne de la profondeur : sans elle, la rotation semble « écrasée »   |
+| `transform-3d`         | La carte (`motion.div`) | Garde les faces dans l'espace 3D (`transform-style: preserve-3d`)  |
+| `backface-hidden`      | Chaque face           | Cache une face quand elle est tournée dos à l'écran                  |
+| `rotate-y-180`         | Face arrière          | La face arrière est retournée dès le départ, pour être lisible une fois la carte tournée |
+
+### Ce qui se passe au clic
+
+1. Au départ, la carte a `rotateY: 0` : on voit la face avant. La face arrière (déjà à 180°) est dos à l'écran, donc cachée par `backface-hidden`.
+2. Au clic, Motion anime `rotateY` de `0` à `180` en 0,6 s.
+3. À mi-chemin (90°), la carte est vue de profil. Ensuite, la face avant passe dos à l'écran et disparaît. La face arrière, elle, se retrouve face à l'écran (180° + 180° = 360°).
+4. Un nouveau clic ramène `rotateY` à `0`.
+
+> Plus la valeur de `perspective` est petite, plus l'effet 3D est marqué (et déformé). `1000px` donne un rendu naturel.
+
+---
+
+## 8. Intégration dans `App.tsx`
 
 ```tsx
 import PulsingButton from "./components/PulsingButton"
 import BouncingLoader from "./components/BouncingLoader"
+import FlippingCard from "./components/FlippingCard"
 
 function App() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-900">
-      <BouncingLoader />
+      <FlippingCard />
     </div>
   )
 }
 ```
 
-Le conteneur centre le composant sur un fond sombre (`bg-slate-900`). Pour voir l'autre animation, remplace `<BouncingLoader />` par `<PulsingButton />`.
+Le conteneur centre le composant sur un fond sombre (`bg-slate-900`). Pour voir une autre animation, remplace `<FlippingCard />` par `<BouncingLoader />` ou `<PulsingButton />`.
 
 ---
 
-## 8. Récapitulatif du processus
+## 9. Récapitulatif du processus
 
 1. **Importer** `motion` depuis `"motion/react"`.
 2. **Remplacer** la balise HTML par sa version `motion.xxx`.
@@ -284,13 +384,13 @@ Le conteneur centre le composant sur un fond sombre (`bg-slate-900`). Pour voir 
 6. **Pour une boucle propre** : la dernière keyframe doit être égale à la première.
 7. **Pour une pause** : répéter la même valeur deux fois de suite.
 8. **Pour animer plusieurs éléments en décalé** : générer une liste avec `.map()` et calculer `delay` à partir de l'`index`.
+9. **Pour une animation déclenchée par l'utilisateur** : nommer les états avec `variants`, stocker l'état dans `useState`, et choisir le variant dans `animate`.
 
 ---
 
-## 9. Pour aller plus loin
+## 10. Pour aller plus loin
 
 - `whileHover={{ scale: 1.05 }}` : animation au survol de la souris
 - `whileTap={{ scale: 0.95 }}` : animation au clic
 - `exit` + `<AnimatePresence>` : animation quand l'élément disparaît
-- `variants` : réutiliser des états d'animation entre plusieurs éléments
 - Documentation officielle : https://motion.dev

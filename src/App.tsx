@@ -3,7 +3,7 @@ import { useState } from 'react'
 import PulsingButton from './components/PulsingButton'
 import BouncingLoader from './components/BouncingLoader'
 import FlippingCard from './components/FlippingCard'
-import { variants } from './variants'
+import AnimatedCard from './AnimatedCard'
 import './index.css'
 
 function App() {
@@ -28,7 +28,7 @@ const [isVisible,setIsVisible] = useState(true)
 
         {/* <BouncingLoader /> */}
 
-        <motion.div
+        {/* <motion.div
         className='box'
          variants={variants}
         initial="hidden"
@@ -36,8 +36,25 @@ const [isVisible,setIsVisible] = useState(true)
         exit="exit"
         transition={{duration: 0.5}}
         >
-        </motion.div>
-        <FlippingCard />
+        </motion.div> */}
+
+
+
+  <motion.div>
+
+  </motion.div>
+
+          
+<motion.div 
+className='box'
+// whileTap={{scale: 0.8 , backgroundColor: "crimson"}}
+// transition={{type: "spring", stiffness: 400, damping: 17}}
+drag dragConstraints={{left: -100, right: 100, top: -100, bottom: 100}}
+>
+
+</motion.div>
+<AnimatedCard />
+        {/* <FlippingCard />s */}
     </div>
   )
 }
