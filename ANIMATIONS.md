@@ -354,27 +354,182 @@ Pour qu'un retournement ait l'air d'être en 3D, il faut quatre réglages CSS (c
 
 ---
 
-## 8. Intégration dans `App.tsx`
+## 8. Cas pratique : `AnimatedCard` (survol, clic, glisser, ressort)
+
+Fichier : `src/AnimatedCard.tsx`
+
+```tsx
+import { motion } from 'motion/react'
+
+const AnimatedCard = () => {
+  return (
+    <motion.div
+      initial={{ scale: 1, rotate: 0 }}
+      whileHover={{ scale: 1.05, rotate: 3 }}
+      whileTap={{ scale: 0.95, rotate: -3 }}
+      animate={{ scale: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 300 }}
+      drag
+      dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
+      className="max-w-sm bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer"
+    >
+      <img src="https://images.unsplash.com/photo-..." alt="Card images" />
+      <div className="p-6">
+        <h2 className="text-xl font-semibold mb-2">Card Title</h2>
+        <p className="text-gray-700">This is a simple animated card component built with React and Tailwind CSS.</p>
+        <button className="px-4 py-2 text-white rounded bg-blue-500 hover:bg-blue-600 transition">Get Started</button>
+      </div>
+    </motion.div>
+  )
+}
+
+export default AnimatedCard
+```
+
+Contrairement aux exemples précédents, cette carte ne bouge **pas toute seule** : elle réagit aux gestes de l'utilisateur (survol, clic, glisser). Pas de `repeat`, pas de `useState` : Motion gère lui-même ces états.
+
+### Les props de geste
+
+| Prop              | Quand                                 | Valeur ici                    | Ce qu'on voit                          |
+| ----------------- | ------------------------------------- | ----------------------------- | -------------------------------------- |
+| `whileHover`      | Tant que la souris est sur la carte   | `scale: 1.05`, `rotate: 3`    | Elle grossit de 5 % et penche à droite |
+| `whileTap`        | Tant que le bouton de la souris est enfoncé | `scale: 0.95`, `rotate: -3` | Elle rétrécit et penche à gauche (effet « enfoncé ») |
+| `drag`            | Quand on la fait glisser              | `true`                        | On peut la déplacer à la souris        |
+| `dragConstraints` | Pendant le glisser                    | ±50 px dans chaque direction  | Elle ne peut pas sortir de cette zone  |
+
+Quand le geste s'arrête (la souris quitte la carte, on relâche le clic), Motion **revient automatiquement** à l'état défini par `animate` (ici `scale: 1`). Pas besoin d'écrire l'animation de retour.
+
+### Le rôle de `initial` et `animate`
+
+- `initial={{ scale: 1, rotate: 0 }}` : au montage, la carte est droite et à sa taille normale.
+- `animate={{ scale: 1, y: 0 }}` : c'est l'état « au repos », vers lequel la carte revient après chaque geste.
+
+Comme `initial` et `animate` ont les mêmes valeurs, il n'y a **aucune animation au chargement** : la carte apparaît simplement. Ces deux props servent surtout de point de retour pour les gestes.
+
+> `rotate` n'est pas dans `animate`, mais Motion le ramène quand même à sa valeur de départ (`0`) à la fin du survol ou du clic.
+
+### `type: "spring"` : une animation physique
+
+Jusqu'ici, les transitions utilisaient une **durée** (`duration`) et une **courbe** (`ease`). Avec `type: "spring"`, Motion simule un **ressort** : il n'y a pas de durée fixe, le mouvement dépend de la physique.
+
+| Option      | Effet                                                                 |
+| ----------- | --------------------------------------------------------------------- |
+| `stiffness` | Raideur du ressort. Plus elle est **élevée**, plus le mouvement est **rapide et sec** (ici `300`) |
+| `damping`   | Amortissement. Plus il est **faible**, plus ça **rebondit** avant de s'arrêter |
+| `mass`      | Poids de l'élément. Plus il est lourd, plus le mouvement est lent     |
+
+Le ressort donne un rendu plus vivant pour les interactions : la carte « rebondit » légèrement en atteignant sa cible au lieu de s'arrêter net.
+
+### Le glisser (`drag`) en détail
+
+1. **`drag`** seul autorise le déplacement dans toutes les directions. On peut limiter à un axe avec `drag="x"` ou `drag="y"`.
+2. **`dragConstraints`** fixe une zone en pixels autour de la position de départ : 50 px vers la gauche, la droite, le haut et le bas.
+3. Si on tire la carte au-delà de cette zone, elle résiste (effet élastique), puis **revient dans la zone** quand on la lâche.
+
+> `whileTap` s'active aussi au début d'un glisser : la carte rétrécit et penche pendant qu'on la tient.
+
+---
+
+## 9. Cas pratique : `AnimatedShape` (variants + gestes)
+
+Fichier : `src/AnimatedShape.tsx`
+
+```tsx
+import { motion } from 'motion/react'
+
+const AnimatedShape = () => {
+  const boxVariants = {
+    initial: { scale: 1, rotate: 0, skew: 0 },
+    hover: {
+      scale: 1.2,
+      rotate: 15,
+      skew: '10deg',
+      transition: { duration: 0.3 },
+    },
+    click: {
+      scale: 0.8,
+      rotate: -15,
+      transition: { duration: 0.3 },
+    },
+  }
+
+  return (
+    <div className='flex items-center justify-center h-screen'>
+      <motion.div
+        className='w-40 h-40 bg-blue-500 rounded-lg'
+        variants={boxVariants}
+        initial="initial"
+        whileHover="hover"
+        whileTap="click"
+      />
+    </div>
+  )
+}
+
+export default AnimatedShape
+```
+
+Ce composant combine deux notions vues plus haut : les **variants** (section 7) et les **props de geste** (section 8). Au lieu d'écrire les valeurs directement dans `whileHover` et `whileTap`, on leur passe le **nom** d'un variant.
+
+### Les trois états
+
+| Variant   | Utilisé par  | scale | rotate | skew  | Ce qu'on voit                                  |
+| --------- | ------------ | ----- | ------ | ----- | ---------------------------------------------- |
+| `initial` | `initial`    | 1     | 0°     | 0     | Carré bleu, droit, taille normale              |
+| `hover`   | `whileHover` | 1.2   | 15°    | 10deg | Il grossit de 20 %, tourne et se déforme       |
+| `click`   | `whileTap`   | 0.8   | -15°   | —     | Il rétrécit et tourne dans l'autre sens        |
+
+### Une `transition` propre à chaque variant
+
+Ici, `transition` n'est pas une prop du `motion.div` : elle est placée **dans le variant**. Chaque état peut ainsi avoir sa propre vitesse.
+
+- Vers `hover` et `click` : `duration: 0.3`, une animation rapide.
+- Vers `initial` (la souris quitte le carré) : pas de `transition` définie, Motion utilise sa transition **par défaut**.
+
+### Pas de `animate` : retour à `initial`
+
+Il n'y a pas de prop `animate`. Quand le geste se termine, Motion revient donc aux valeurs de `initial` (`scale: 1`, `rotate: 0`, `skew: 0`).
+
+### Survol + clic en même temps
+
+Pour cliquer, la souris est forcément déjà sur le carré : `whileHover` et `whileTap` sont **actifs ensemble**. `whileTap` est prioritaire, mais seulement pour les propriétés qu'il définit.
+
+- `scale` et `rotate` : valeurs de `click` (0.8 et -15°).
+- `skew` : absent de `click`, il **garde la valeur de `hover`** (10deg).
+
+Quand on relâche le clic, le carré revient à l'état `hover` (la souris est toujours dessus), puis à `initial` quand la souris part.
+
+### `skew` : incliner la forme
+
+`skew` penche l'élément en le déformant (un carré devient un losange). On peut aussi n'incliner que sur un axe avec `skewX` ou `skewY`. La valeur s'écrit en degrés : `'10deg'` ou simplement `10`.
+
+> Dans le fichier, la valeur est écrite `' 10deg'` (avec un espace au début). Mieux vaut l'écrire `'10deg'` sans espace.
+
+---
+
+## 10. Intégration dans `App.tsx`
 
 ```tsx
 import PulsingButton from "./components/PulsingButton"
 import BouncingLoader from "./components/BouncingLoader"
 import FlippingCard from "./components/FlippingCard"
+import AnimatedCard from "./AnimatedCard"
+import AnimatedShape from "./AnimatedShape"
 
 function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-900">
-      <FlippingCard />
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <AnimatedShape />
     </div>
   )
 }
 ```
 
-Le conteneur centre le composant sur un fond sombre (`bg-slate-900`). Pour voir une autre animation, remplace `<FlippingCard />` par `<BouncingLoader />` ou `<PulsingButton />`.
+Le conteneur centre le composant sur un fond gris clair (`bg-gray-100`). Pour voir une autre animation, remplace `<AnimatedShape />` par `<AnimatedCard />`, `<FlippingCard />`, `<BouncingLoader />` ou `<PulsingButton />`.
 
 ---
 
-## 9. Récapitulatif du processus
+## 11. Récapitulatif du processus
 
 1. **Importer** `motion` depuis `"motion/react"`.
 2. **Remplacer** la balise HTML par sa version `motion.xxx`.
@@ -385,12 +540,13 @@ Le conteneur centre le composant sur un fond sombre (`bg-slate-900`). Pour voir 
 7. **Pour une pause** : répéter la même valeur deux fois de suite.
 8. **Pour animer plusieurs éléments en décalé** : générer une liste avec `.map()` et calculer `delay` à partir de l'`index`.
 9. **Pour une animation déclenchée par l'utilisateur** : nommer les états avec `variants`, stocker l'état dans `useState`, et choisir le variant dans `animate`.
+10. **Pour réagir aux gestes** : `whileHover`, `whileTap` et `drag` (avec `dragConstraints`). Motion revient seul à l'état `animate` à la fin du geste. `type: "spring"` rend le mouvement plus naturel.
+11. **Pour des gestes réutilisables** : définir les états dans des `variants` et passer leur nom à `whileHover` / `whileTap`. Chaque variant peut porter sa propre `transition`.
 
 ---
 
-## 10. Pour aller plus loin
+## 12. Pour aller plus loin
 
-- `whileHover={{ scale: 1.05 }}` : animation au survol de la souris
-- `whileTap={{ scale: 0.95 }}` : animation au clic
+- `whileFocus`, `whileDrag`, `whileInView` : d'autres états déclenchés par l'utilisateur ou le défilement
 - `exit` + `<AnimatePresence>` : animation quand l'élément disparaît
 - Documentation officielle : https://motion.dev
