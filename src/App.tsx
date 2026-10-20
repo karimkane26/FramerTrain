@@ -3,7 +3,7 @@ import { useState } from 'react'
 import PulsingButton from './components/PulsingButton'
 import BouncingLoader from './components/BouncingLoader'
 import FlippingCard from './components/FlippingCard'
-import { variants } from './variants'
+import AnimatedCard from './AnimatedCard'
 import './index.css'
 
 function App() {
@@ -53,6 +53,7 @@ drag dragConstraints={{left: -100, right: 100, top: -100, bottom: 100}}
 >
 
 </motion.div>
+<AnimatedCard />
         {/* <FlippingCard />s */}
     </div>
   )

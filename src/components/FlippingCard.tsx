@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
-
+import cardVariants from '../variants'
 const FlippingCard = () => {
   const [isFlipped, setIsFlipped] = useState(false)
 
@@ -8,10 +8,10 @@ const FlippingCard = () => {
     setIsFlipped(!isFlipped)
   }
 
-  const cardVariants = {
-    front: { rotateY: 0 },
-    back: { rotateY: 180 },
-  }
+  // const cardVariants = {
+  //   front: { rotateY: 0 },
+  //   back: { rotateY: 180 },
+  // }
 
   return (
     <div className="perspective-[1000px]">
