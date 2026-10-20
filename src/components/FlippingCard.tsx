@@ -14,23 +14,19 @@ const FlippingCard = () => {
   // }
 
   return (
-    <div className="perspective-[1000px]">
-      <motion.div
-        onClick={handleFlip}
-        variants={cardVariants}
-        initial="front"
-        animate={isFlipped ? "back" : "front"}
-        transition={{ duration: 0.6, ease: "easeInOut" }}
-        className="relative w-64 h-40 transform-3d cursor-pointer"
-      >
-        <div className="absolute inset-0 backface-hidden rounded-lg shadow-lg bg-white flex items-center justify-center text-xl font-bold">
-          <p className="text-gray-800">Front</p>
-        </div>
+    <div className="perspective-1000">
+      <div className="w-64 h-40 rounded-lg shadow-lg overflow-hidden transform-style-preserve-3d ">
+       <div className="absolute inset-0 bg-white flex items-center justify-center text-xl font-bold ">
+         <p className="text-gray-800">Front</p>
+       </div>
 
-        <div className="absolute inset-0 backface-hidden rotate-y-180 rounded-lg shadow-lg bg-blue-500 flex items-center justify-center text-xl font-bold">
-          <p className="text-white">Back Side</p>
-        </div>
-      </motion.div>
+     <div className="absolute inset-0 bg-blue-500 flex items-center justify-center text-xl font-bold text-gray-800 rotate-y-180 ">
+         <p className="text-gray-800">Back Side</p>
+       </div>
+
+       
+      </div>
+      
     </div>
   )
 }
