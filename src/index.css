@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 .box{
-    width: 200px;
+    width: 300px;
     border-radius: 100px;
     background-color: yellow;
-    height: 200px;
+    height: 300px;
+   
+}
+
+body{
+     color: #fff;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }

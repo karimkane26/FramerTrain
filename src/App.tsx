@@ -6,6 +6,7 @@ import FlippingCard from './components/FlippingCard'
 // import AnimatedCard from './AnimatedCard'
 import ImageGallery from './ImageGallery'
 import AnimatedShape from './AnimatedShape'
+import StaggerAnimations from './StaggerAnimations'
 import './index.css'
 
 function App() {
@@ -58,6 +59,7 @@ drag dragConstraints={{left: -100, right: 100, top: -100, bottom: 100}}
 {/* <AnimatedCard /> */}
          <div className="min-h-screen bg-gray-100 flex items-center justify-center">
            <AnimatedShape />
+           <StaggerAnimations />
          </div>
         {/* <FlippingCard />s */}
     </div>
