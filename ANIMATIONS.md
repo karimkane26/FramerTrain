@@ -356,7 +356,7 @@ Pour qu'un retournement ait l'air d'être en 3D, il faut quatre réglages CSS (c
 
 ## 8. Cas pratique : `AnimatedCard` (survol, clic, glisser, ressort)
 
-Fichier : `src/AnimatedCard.tsx`
+Fichier : `src/components/AnimatedCard.tsx`
 
 ```tsx
 import { motion } from 'motion/react'
@@ -432,7 +432,7 @@ Le ressort donne un rendu plus vivant pour les interactions : la carte « rebond
 
 ## 9. Cas pratique : `AnimatedShape` (variants + gestes)
 
-Fichier : `src/AnimatedShape.tsx`
+Fichier : `src/components/AnimatedShape.tsx`
 
 ```tsx
 import { motion } from 'motion/react'
@@ -507,29 +507,135 @@ Quand on relâche le clic, le carré revient à l'état `hover` (la souris est t
 
 ---
 
-## 10. Intégration dans `App.tsx`
+## 10. Cas pratique : `StaggerAnimation` (parent, enfants et `staggerChildren`)
+
+Fichier : `src/components/StaggerAnimation.tsx`
+
+```tsx
+import { motion } from 'motion/react'
+
+const parentVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.8,
+    },
+  },
+}
+
+const childVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      repeat: Infinity,
+      repeatType: 'reverse' as const,
+    },
+  },
+}
+
+const StaggerAnimation = () => {
+  return (
+    <motion.div
+      className='stagger-container'
+      variants={parentVariants}
+      initial='hidden'
+      animate='visible'
+    >
+      {[...Array(5)].map((_, index) => (
+        <motion.div className='stagger-item' key={index} variants={childVariants} />
+      ))}
+    </motion.div>
+  )
+}
+
+export default StaggerAnimation
+```
+
+Dans la section 6, on décalait les éléments **à la main** avec `delay: index * 0.2`. Ici, c'est le **parent** qui orchestre le décalage de ses enfants, grâce à `staggerChildren`.
+
+### La propagation des variants
+
+Seul le parent a `initial='hidden'` et `animate='visible'`. Les enfants n'ont que `variants={childVariants}`.
+
+Ça suffit : un enfant `motion` **hérite des noms de variants de son parent**. Quand le parent passe à `'visible'`, chaque enfant cherche lui aussi un variant `visible` dans ses propres `variants` et l'applique.
+
+| Élément | `hidden`                 | `visible`              |
+| ------- | ------------------------ | ---------------------- |
+| Parent  | `opacity: 0`             | `opacity: 1`           |
+| Enfant  | `opacity: 0`, `y: 20`    | `opacity: 1`, `y: 0`   |
+
+Les noms doivent donc être **identiques** dans les deux objets (`hidden` et `visible`).
+
+### `staggerChildren` : l'échelonnement automatique
+
+`staggerChildren: 0.8` est placé dans la `transition` du **parent**. Il dit : « démarre chaque enfant 0,8 s après le précédent ».
+
+| Carré | Démarre à |
+| ----- | --------- |
+| 1     | 0 s       |
+| 2     | 0,8 s     |
+| 3     | 1,6 s     |
+| 4     | 2,4 s     |
+| 5     | 3,2 s     |
+
+Pas besoin d'`index` ni de calcul : Motion compte les enfants lui-même.
+
+### La boucle des enfants
+
+La `transition` de l'enfant contient :
+
+- `duration: 0.8` : un carré apparaît (et monte de 20 px) en 0,8 s ;
+- `repeat: Infinity` : ça ne s'arrête jamais ;
+- `repeatType: 'reverse'` : au lieu de recommencer depuis le début, l'animation **repart en arrière**. Le carré apparaît, puis disparaît en redescendant, puis réapparaît…
+
+Comme le décalage (0,8 s) est égal à la durée d'un aller (0,8 s), un carré commence à apparaître au moment exact où le précédent commence à disparaître. Une fois les 5 carrés lancés, ils **clignotent en alternance** : les carrés 1, 3 et 5 sont visibles quand les carrés 2 et 4 sont cachés, et inversement.
+
+> `as const` est nécessaire en TypeScript : sans lui, `'reverse'` serait vu comme un simple `string`, alors que Motion attend exactement `"loop"`, `"reverse"` ou `"mirror"`.
+
+### Le style (`index.css`)
+
+Les classes `stagger-container` et `stagger-item` sont définies en CSS classique dans `src/index.css` :
+
+- `.stagger-container` : colonne flex centrée, avec 2rem d'espace entre les carrés ;
+- `.stagger-item` : carré jaune de 100 px, coins arrondis (20 px) et ombre portée.
+
+### À nettoyer dans le fichier
+
+Le fichier contient deux lignes inutiles, retirées de l'exemple ci-dessus :
+
+- `import { animate } from 'motion'` : la fonction `animate` n'est jamais utilisée ;
+- `animate: { Infinity }` dans `childVariants` : ce n'est pas une propriété animable. Ce variant n'est jamais utilisé et peut être supprimé.
+
+---
+
+## 11. Intégration dans `App.tsx`
 
 ```tsx
 import PulsingButton from "./components/PulsingButton"
 import BouncingLoader from "./components/BouncingLoader"
 import FlippingCard from "./components/FlippingCard"
-import AnimatedCard from "./AnimatedCard"
-import AnimatedShape from "./AnimatedShape"
+import AnimatedCard from "./components/AnimatedCard"
+import AnimatedShape from "./components/AnimatedShape"
+import StaggerAnimation from "./components/StaggerAnimation"
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <AnimatedShape />
+    <div className="flex min-h-screen items-center justify-center bg-slate-900">
+      <StaggerAnimation />
     </div>
   )
 }
 ```
 
-Le conteneur centre le composant sur un fond gris clair (`bg-gray-100`). Pour voir une autre animation, remplace `<AnimatedShape />` par `<AnimatedCard />`, `<FlippingCard />`, `<BouncingLoader />` ou `<PulsingButton />`.
+Le conteneur centre le composant sur un fond sombre (`bg-slate-900`). Pour voir une autre animation, remplace `<StaggerAnimation />` par `<AnimatedShape />`, `<AnimatedCard />`, `<FlippingCard />`, `<BouncingLoader />` ou `<PulsingButton />`.
 
 ---
 
-## 11. Récapitulatif du processus
+## 12. Récapitulatif du processus
 
 1. **Importer** `motion` depuis `"motion/react"`.
 2. **Remplacer** la balise HTML par sa version `motion.xxx`.
@@ -542,11 +648,13 @@ Le conteneur centre le composant sur un fond gris clair (`bg-gray-100`). Pour vo
 9. **Pour une animation déclenchée par l'utilisateur** : nommer les états avec `variants`, stocker l'état dans `useState`, et choisir le variant dans `animate`.
 10. **Pour réagir aux gestes** : `whileHover`, `whileTap` et `drag` (avec `dragConstraints`). Motion revient seul à l'état `animate` à la fin du geste. `type: "spring"` rend le mouvement plus naturel.
 11. **Pour des gestes réutilisables** : définir les états dans des `variants` et passer leur nom à `whileHover` / `whileTap`. Chaque variant peut porter sa propre `transition`.
+12. **Pour orchestrer une liste** : mettre `initial` / `animate` sur le parent seulement, donner les mêmes noms de variants aux enfants, et ajouter `staggerChildren` dans la `transition` du parent.
 
 ---
 
-## 12. Pour aller plus loin
+## 13. Pour aller plus loin
 
+- `delayChildren`, `staggerDirection: -1` : attendre avant le premier enfant, ou échelonner du dernier au premier
 - `whileFocus`, `whileDrag`, `whileInView` : d'autres états déclenchés par l'utilisateur ou le défilement
 - `exit` + `<AnimatePresence>` : animation quand l'élément disparaît
 - Documentation officielle : https://motion.dev

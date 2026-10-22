@@ -4,14 +4,10 @@ import PulsingButton from './components/PulsingButton'
 import BouncingLoader from './components/BouncingLoader'
 import FlippingCard from './components/FlippingCard'
 // import AnimatedCard from './AnimatedCard'
-<<<<<<< HEAD
 import ImageGallery from './ImageGallery'
-import AnimatedShape from './AnimatedShape'
 import StaggerAnimations from './StaggerAnimations'
-=======
 import AnimatedShape from './components/AnimatedShape'
 import StaggerAnimation from './components/StaggerAnimation'
->>>>>>> dc7d39cf16c212305c15b48c2c2d53fc87737bc4
 import './index.css'
 
 function App() {
