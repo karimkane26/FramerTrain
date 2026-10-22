@@ -4,6 +4,7 @@
     width: 300px;
     border-radius: 100px;
     background-color: yellow;
+<<<<<<< HEAD
     height: 300px;
    
 }
@@ -14,3 +15,22 @@ body{
     align-items: center;
     height: 100vh;
 }
+=======
+    height: 200px;
+}
+.stagger-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.stagger-item{
+    width: 100px;
+    height: 100px;
+    border-radius: 20px;
+    background-color: yellow;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+>>>>>>> dc7d39cf16c212305c15b48c2c2d53fc87737bc4

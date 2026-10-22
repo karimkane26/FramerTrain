@@ -4,9 +4,14 @@ import PulsingButton from './components/PulsingButton'
 import BouncingLoader from './components/BouncingLoader'
 import FlippingCard from './components/FlippingCard'
 // import AnimatedCard from './AnimatedCard'
+<<<<<<< HEAD
 import ImageGallery from './ImageGallery'
 import AnimatedShape from './AnimatedShape'
 import StaggerAnimations from './StaggerAnimations'
+=======
+import AnimatedShape from './components/AnimatedShape'
+import StaggerAnimation from './components/StaggerAnimation'
+>>>>>>> dc7d39cf16c212305c15b48c2c2d53fc87737bc4
 import './index.css'
 
 function App() {
@@ -49,7 +54,7 @@ const [isVisible,setIsVisible] = useState(true)
 
           
 <motion.div 
-// className='box'
+className='box'
 // whileTap={{scale: 0.8 , backgroundColor: "crimson"}}
 // transition={{type: "spring", stiffness: 400, damping: 17}}
 drag dragConstraints={{left: -100, right: 100, top: -100, bottom: 100}}
@@ -62,6 +67,8 @@ drag dragConstraints={{left: -100, right: 100, top: -100, bottom: 100}}
            <StaggerAnimations />
          </div>
         {/* <FlippingCard />s */}
+        <StaggerAnimation />
+
     </div>
   )
 }
